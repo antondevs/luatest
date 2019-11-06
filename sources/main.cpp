@@ -16,16 +16,19 @@ int main(int argc, char **argv)
 	lua_pushcfunction(lua, fn_three);
 	lua_setglobal(lua, "three");
     
-    Context* context = new Context();
+    Context *context = new Context();
     context->fp = fopen("output.txt", "a");
-    Context **userInfoData = (Context **)lua_newuserdata(lua, sizeof(Context));
-    *userInfoData = context;
     
-    int iErr = luaL_loadfile(lua, "main.lua");
+    lua_pushlightuserdata(lua, context);
+    lua_setglobal(lua, "context");
     
-    iErr = lua_pcall(lua, 0, 0, 0);
-    if (iErr != 0) {
-        printf("Error code %i attempting to call function: '%s'\n", iErr, lua_tostring(lua, -1));
+    int res = luaL_loadfile(lua, "main.lua");
+    
+    res = lua_pcall(lua, 0, 0, 0);
+    
+    if (res != 0) {
+        const char* err = lua_tostring(lua, -1);
+        printf("Lua error: %s", err);
     }
 
     lua_getglobal(lua, "main");
